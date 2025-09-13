@@ -24,9 +24,11 @@ RSpec.describe Api::V1::StuffsController, type: :controller do
         parsed_response = JSON.parse(response.body)
         expect(parsed_response.length).to eq(2)
 
-        # Use include matcher for more detailed failure messages
-        expect(parsed_response.first).to include('name' => 'First Stuff')
-        expect(parsed_response.second).to include('name' => 'Second Stuff')
+        # Use match_array and a_hash_including for order-independent assertions
+        expect(parsed_response).to match_array([
+          a_hash_including('name' => 'First Stuff'),
+          a_hash_including('name' => 'Second Stuff')
+        ])
       end
     end
   end

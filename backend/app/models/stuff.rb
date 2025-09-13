@@ -4,4 +4,5 @@
 # description: text
 #
 class Stuff < ApplicationRecord
+  validates :name, presence: true
 end

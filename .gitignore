@@ -421,3 +421,5 @@ node_modules/
 # https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij
 
 # End of https://www.toptal.com/developers/gitignore/api/nextjs,rails,macos,jetbrains,rubymine,webstorm,visualstudiocode
+
+*/.idea

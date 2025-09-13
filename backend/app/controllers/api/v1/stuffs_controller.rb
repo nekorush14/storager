@@ -9,7 +9,7 @@ class Api::V1::StuffsController < ApplicationController
 
   # GET /api/v1/stuffs/:id
   def show
-    @stuff = Stuff.find(params[:id])
+    render json: @stuff
   end
 
   # POST /api/v1/stuffs
@@ -23,7 +23,7 @@ class Api::V1::StuffsController < ApplicationController
     end
   end
 
-  # PUT /app/v1/stuffs/:id
+  # PUT /api/v1/stuffs/:id
   def update
     if @stuff.update(stuff_params)
       render json: @stuff
@@ -32,10 +32,10 @@ class Api::V1::StuffsController < ApplicationController
     end
   end
 
-  # DELETE /app/v1/stuffs/:id
+  # DELETE /api/v1/stuffs/:id
   def destroy
     @stuff.destroy
-    head status: :no_content
+    head :no_content
   end
 
   private

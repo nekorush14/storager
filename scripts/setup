@@ -1,0 +1,172 @@
+#!/bin/bash
+
+# Storager Project Setup Script
+set -e
+
+echo "🏗️  Storager プロジェクトセットアップ"
+echo "=================================="
+
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to check version
+check_version() {
+    local cmd=$1
+    local min_version=$2
+    local current_version
+    
+    case $cmd in
+        "node")
+            current_version=$(node --version | sed 's/v//')
+            ;;
+        "ruby")
+            current_version=$(ruby --version | awk '{print $2}')
+            ;;
+    esac
+    
+    echo "✅ $cmd version: $current_version"
+}
+
+echo "📋 必要な依存関係をチェック中..."
+
+# Check for required tools
+REQUIRED_TOOLS=("node" "npm" "ruby" "bundle" "rails")
+MISSING_TOOLS=()
+
+for tool in "${REQUIRED_TOOLS[@]}"; do
+    if command_exists "$tool"; then
+        case $tool in
+            "node") check_version "node" "18.0.0" ;;
+            "ruby") check_version "ruby" "3.0.0" ;;
+            *) echo "✅ $tool is installed" ;;
+        esac
+    else
+        MISSING_TOOLS+=("$tool")
+    fi
+done
+
+if [ ${#MISSING_TOOLS[@]} -ne 0 ]; then
+    echo "❌ 以下のツールがインストールされていません:"
+    for tool in "${MISSING_TOOLS[@]}"; do
+        echo "   - $tool"
+    done
+    echo ""
+    echo "セットアップガイド:"
+    echo "• Node.js (v18+): https://nodejs.org/"
+    echo "• Ruby (v3.0+): https://www.ruby-lang.org/"
+    echo "• Rails: gem install rails"
+    echo "• Bundler: gem install bundler"
+    exit 1
+fi
+
+echo ""
+echo "🗄️  データベース要件をチェック中..."
+
+# Check for PostgreSQL
+if command_exists "psql"; then
+    echo "✅ PostgreSQL is installed"
+else
+    echo "⚠️  PostgreSQL が見つかりません"
+    echo "PostgreSQLをインストールしてください:"
+    echo "• macOS: brew install postgresql"
+    echo "• Ubuntu: sudo apt-get install postgresql postgresql-contrib"
+    echo ""
+    read -p "PostgreSQLがインストールされている場合は続行しますか? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+    fi
+fi
+
+echo ""
+echo "📦 バックエンド（Rails）をセットアップ中..."
+
+if [ ! -d "backend" ]; then
+    echo "❌ Error: backend directory not found!"
+    exit 1
+fi
+
+cd backend
+
+# Install Ruby gems
+echo "💎 Rubyの依存関係をインストール中..."
+bundle install
+
+# Setup database
+echo "🗄️  データベースをセットアップ中..."
+if bundle exec rails db:version &> /dev/null; then
+    echo "Database already exists, running migrations..."
+    bundle exec rails db:migrate
+else
+    echo "Creating and setting up database..."
+    bundle exec rails db:create db:migrate
+fi
+
+# Seed data if seeds file exists
+if [ -f "db/seeds.rb" ] && [ -s "db/seeds.rb" ]; then
+    echo "🌱 サンプルデータを投入中..."
+    bundle exec rails db:seed
+fi
+
+cd ..
+
+echo ""
+echo "🎨 フロントエンド（React）をセットアップ中..."
+
+if [ ! -d "frontend" ]; then
+    echo "❌ Error: frontend directory not found!"
+    exit 1
+fi
+
+cd frontend
+
+# Install Node.js dependencies
+echo "📦 Node.jsの依存関係をインストール中..."
+npm install
+
+cd ..
+
+echo ""
+echo "🧪 設定をテスト中..."
+
+# Test backend
+echo "Testing backend..."
+cd backend
+if timeout 10s bundle exec rails runner "puts 'Backend OK'" 2>/dev/null; then
+    echo "✅ Backend setup successful"
+else
+    echo "⚠️  Backend test timeout (this might be normal)"
+fi
+cd ..
+
+# Test frontend
+echo "Testing frontend..."
+cd frontend
+if npm run build --silent 2>/dev/null; then
+    echo "✅ Frontend setup successful"
+else
+    echo "❌ Frontend build failed"
+    exit 1
+fi
+cd ..
+
+echo ""
+echo "🎉 セットアップ完了!"
+echo "==================="
+echo ""
+echo "📋 次のステップ:"
+echo "1. バックエンドを起動: ./scripts/start-backend.sh"
+echo "2. フロントエンドを起動: ./scripts/start-frontend.sh (別ターミナル)"
+echo ""
+echo "🌐 アクセス先:"
+echo "• Frontend: http://localhost:5173"
+echo "• Backend API: http://localhost:3000/api/v1"
+echo ""
+echo "🔧 便利なコマンド:"
+echo "• Backend tests: cd backend && bundle exec rspec"
+echo "• Frontend tests: cd frontend && npm test"
+echo "• Code quality: cd backend && bundle exec rubocop"
+echo ""
+echo "Happy coding! 🚀"

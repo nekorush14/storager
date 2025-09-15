@@ -1,35 +1,84 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import type { Stuff } from './types/stuff';
+import { StuffForm } from './components/StuffForm';
+import { StuffList } from './components/StuffList';
+import { useStuffs } from './hooks/useStuffs';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { stuffs, loading, error, createStuff, updateStuff, deleteStuff } = useStuffs();
+  const [editingStuff, setEditingStuff] = useState<Stuff | null>(null);
+  const [formLoading, setFormLoading] = useState(false);
+
+  const handleCreate = async (data: { name: string }) => {
+    try {
+      setFormLoading(true);
+      await createStuff(data);
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleUpdate = async (data: { name: string }) => {
+    if (!editingStuff) return;
+    
+    try {
+      setFormLoading(true);
+      await updateStuff(editingStuff.id, data);
+      setEditingStuff(null);
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleEdit = (stuff: Stuff) => {
+    setEditingStuff(stuff);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingStuff(null);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="min-h-screen p-4">
+      <div className="container">
+        <header className="text-center mb-6">
+          <h1 className="text-3xl font-bold mb-2">Storager</h1>
+          <p className="text-secondary">家庭内の物品管理アプリケーション</p>
+        </header>
+
+        {error && (
+          <div className="card mb-6" style={{ borderColor: 'var(--error)' }}>
+            <div className="error-message text-center">
+              <strong>エラー:</strong> {error}
+            </div>
+          </div>
+        )}
+
+        <div className="grid gap-6">
+          <StuffForm
+            onSubmit={editingStuff ? handleUpdate : handleCreate}
+            initialData={editingStuff || undefined}
+            isEdit={!!editingStuff}
+            isLoading={formLoading}
+            onCancel={editingStuff ? handleCancelEdit : undefined}
+          />
+
+          <StuffList
+            stuffs={stuffs}
+            onEdit={handleEdit}
+            onDelete={deleteStuff}
+            isLoading={loading}
+          />
+        </div>
+
+        <footer className="text-center mt-8 p-4">
+          <p className="text-sm text-secondary">
+            Storager v1.0 - 物品管理システム
+          </p>
+        </footer>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;

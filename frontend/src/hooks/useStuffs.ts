@@ -24,26 +24,22 @@ export function useStuffs() {
 
   const createStuff = async (data: CreateStuffData) => {
     try {
-      setError(null);
       const newStuff = await stuffApi.create(data);
       setStuffs(prev => [...prev, newStuff]);
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'アイテムの作成に失敗しました';
-      setError(message);
+      // Re-throw to allow the form component to handle the error.
       throw err;
     }
   };
 
   const updateStuff = async (id: number, data: UpdateStuffData) => {
     try {
-      setError(null);
       const updatedStuff = await stuffApi.update(id, data);
-      setStuffs(prev => prev.map(stuff => 
+      setStuffs(prev => prev.map(stuff =>
         stuff.id === id ? updatedStuff : stuff
       ));
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'アイテムの更新に失敗しました';
-      setError(message);
+      // Re-throw to allow the form component to handle the error.
       throw err;
     }
   };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { CreateStuffData, UpdateStuffData, Stuff } from '../types/stuff';
 
 interface StuffFormProps {
@@ -12,6 +12,11 @@ interface StuffFormProps {
 export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = false, onCancel }: StuffFormProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setName(initialData?.name || '');
+    setError(null); // Reset error when data changes
+  }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

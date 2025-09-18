@@ -196,7 +196,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=sha,prefix={{branch}}-
+            type=sha,prefix=sha-
             type=raw,value=latest,enable={{is_default_branch}}
             
       - name: Extract metadata for backend
@@ -207,7 +207,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=sha,prefix={{branch}}-
+            type=sha,prefix=sha-
             type=raw,value=latest,enable={{is_default_branch}}
             
       - name: Build and test frontend Docker image
@@ -282,11 +282,11 @@ jobs:
           echo "RAILS_MASTER_KEY=placeholder_key_for_ci_testing" >> .env
           
       - name: Validate docker-compose configuration
-        run: docker-compose config
+        run: docker compose config
         
       - name: Test docker-compose services startup
         run: |
-          docker-compose up -d db
+          docker compose up -d db
           sleep 10
-          docker-compose ps
-          docker-compose down
+          docker compose ps
+          docker compose down

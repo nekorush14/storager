@@ -6,22 +6,19 @@ FROM node:20-alpine AS base
 # Set working directory
 WORKDIR /app
 
-# Install dependencies
+# Copy package files for better layer caching
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
 
 # Development stage
 FROM base AS dev
-COPY package*.json ./
-RUN npm ci
+RUN npm ci && npm cache clean --force
 COPY . .
 EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
 # Build stage
 FROM base AS build
-COPY package*.json ./
-RUN npm ci
+RUN npm ci && npm cache clean --force
 COPY . .
 RUN npm run build
 

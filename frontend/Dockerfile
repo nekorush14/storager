@@ -12,6 +12,7 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Development stage
 FROM base AS dev
+COPY package*.json ./
 RUN npm ci
 COPY . .
 EXPOSE 5173
@@ -19,8 +20,10 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
 # Build stage
 FROM base AS build
+COPY package*.json ./
+RUN npm ci
 COPY . .
-RUN npm ci && npm run build
+RUN npm run build
 
 # Production stage
 FROM nginx:alpine AS production

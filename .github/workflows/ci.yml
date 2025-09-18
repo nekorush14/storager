@@ -139,7 +139,10 @@ jobs:
             });
             
             const dockerCommentExists = comments.data.find(
-              comment => comment.body.includes('🐳 Docker Image Local Testing Instructions')
+              comment => comment.body.includes('🐳 Docker Image Local Testing Instructions') &&
+                         comment.body.includes('Clone and checkout the repository') &&
+                         comment.body.includes('Build Docker images') &&
+                         comment.body.includes('Start services with Docker Compose')
             );
             
             if (dockerCommentExists) {

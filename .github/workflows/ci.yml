@@ -128,7 +128,7 @@ jobs:
       - name: Comment Docker instructions on PR
         id: comment-docker-instructions-on-pr
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             // Check if Docker instructions comment already exists
@@ -264,7 +264,7 @@ jobs:
           
       - name: Update PR comment with success message
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const commentId = '${{ steps.comment-docker-instructions-on-pr.outputs.comment-id }}';

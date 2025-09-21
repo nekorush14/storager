@@ -6,6 +6,7 @@
 # taggable: references
 #
 class Tag < ApplicationRecord
-  validates :name, presence: true
-  belongs_to :taggable, polymorphic: true, optional: true
+  validates :name, presence: true, uniqueness: true
+  validates :color_code, format: { with: /\A#[0-9A-Fa-f]{6}\z/, message: "must be a valid hex color code" }, allow_blank: true
+  belongs_to :taggable, polymorphic: true
 end

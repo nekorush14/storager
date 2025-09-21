@@ -18,7 +18,6 @@ This app will use forlowing frameworks.
 
 This app expected to be deployed a self-hosted environment.
 
-## Lisence
+## License
 
 This software is licensed under the MIT License - see the LICENSE file.
-

@@ -16,6 +16,8 @@ This app will use forlowing frameworks.
 - Database
   - PostgreSQL
 
-## Lisence
+This app expected to be deployed a self-hosted environment.
+
+## License
 
 This software is licensed under the MIT License - see the LICENSE file.

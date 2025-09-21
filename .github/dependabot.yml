@@ -1,0 +1,53 @@
+# Dependabot configuration for automated dependency updates
+version: 2
+updates:
+  # Backend (Ruby on Rails)
+  - package-ecosystem: "bundler"
+    directory: "/backend"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "nekorush14"
+    assignees:
+      - "nekorush14"
+    commit-message:
+      prefix: "chore(backend)"
+      include: "scope"
+
+  # Frontend (Next.js/Node.js)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "nekorush14"
+    assignees:
+      - "nekorush14"
+    commit-message:
+      prefix: "chore(frontend)"
+      include: "scope"
+
+  # Docker
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "chore(docker)"
+
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "chore(docker)"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "chore(ci)"

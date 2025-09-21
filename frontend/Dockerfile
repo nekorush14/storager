@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Frontend build stage
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 # Set working directory
 WORKDIR /app

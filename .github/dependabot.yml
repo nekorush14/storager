@@ -7,7 +7,7 @@ updates:
   - package-ecosystem: "bundler"
     directory: "/backend"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     open-pull-requests-limit: 10
     reviewers:
       - "nekorush14"
@@ -21,7 +21,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     open-pull-requests-limit: 10
     reviewers:
       - "nekorush14"
@@ -35,7 +35,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/backend"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     open-pull-requests-limit: 10
     reviewers:
       - "nekorush14"
@@ -47,7 +47,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/frontend"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     open-pull-requests-limit: 10
     reviewers:
       - "nekorush14"
@@ -60,7 +60,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     open-pull-requests-limit: 10
     reviewers:
       - "nekorush14"

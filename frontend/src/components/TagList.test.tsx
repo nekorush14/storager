@@ -112,7 +112,7 @@ describe('TagList', () => {
       />
     );
     
-    expect(screen.getByText('対象: Stuff (ID: 1)')).toBeInTheDocument();
+    expect(screen.getAllByText('対象: Stuff (ID: 1)')).toHaveLength(2); // Two tags with same taggable
   });
 
   it('should display creation dates', () => {

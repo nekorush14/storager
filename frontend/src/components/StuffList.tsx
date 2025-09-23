@@ -1,4 +1,5 @@
 import type { Stuff } from '../types/stuff';
+import { sanitizeColorCode } from '../utils/validation';
 
 interface StuffListProps {
   stuffs: Stuff[];
@@ -44,25 +45,28 @@ export function StuffList({ stuffs, onEdit, onDelete, isLoading = false }: Stuff
             {stuff.tags && stuff.tags.length > 0 && (
               <div className="mb-3">
                 <div className="flex flex-wrap gap-1">
-                  {stuff.tags.map((tag, index) => (
+                  {stuff.tags.map((tag, index) => {
+                    const safeColor = tag.color_code ? sanitizeColorCode(tag.color_code) : null;
+                    return (
                     <span
                       key={index}
                       className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full border"
                       style={{
-                        backgroundColor: tag.color_code ? `${tag.color_code}20` : '#f3f4f6',
-                        borderColor: tag.color_code || '#d1d5db',
-                        color: tag.color_code || '#374151'
+                        backgroundColor: safeColor ? `${safeColor}20` : '#f3f4f6',
+                        borderColor: safeColor || '#d1d5db',
+                        color: safeColor || '#374151'
                       }}
                     >
-                      {tag.color_code && (
+                      {safeColor && (
                         <div
                           className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: tag.color_code }}
+                          style={{ backgroundColor: safeColor }}
                         />
                       )}
                       {tag.name}
                     </span>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

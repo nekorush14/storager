@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Tag } from '../types/tag';
 
 interface TagListProps {
@@ -7,7 +8,7 @@ interface TagListProps {
   isLoading?: boolean;
 }
 
-export function TagList({ tags, onEdit, onDelete, isLoading = false }: TagListProps) {
+export const TagList = React.memo(({ tags, onEdit, onDelete, isLoading = false }: TagListProps) => {
   if (isLoading) {
     return (
       <div className="card">
@@ -84,4 +85,6 @@ export function TagList({ tags, onEdit, onDelete, isLoading = false }: TagListPr
       </div>
     </div>
   );
-}
+});
+
+TagList.displayName = 'TagList';

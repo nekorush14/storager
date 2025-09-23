@@ -129,6 +129,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
                   onClick={() => removeTag(index)}
                   className="text-red-500 hover:text-red-700 text-sm"
                   disabled={isLoading}
+                  aria-label={`タグ ${index + 1} を削除`}
                 >
                   削除
                 </button>
@@ -174,6 +175,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
                       onChange={(e) => updateTag(index, 'color_code', e.target.value)}
                       className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
                       disabled={isLoading}
+                      aria-label={`タグ ${index + 1} のカラーを選択`}
                     />
                     <input
                       type="text"

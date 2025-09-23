@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { CreateTagData, UpdateTagData, Tag } from '../types/tag';
+import { validateTagName, validateTagDescription, validateColorCode, sanitizeText, sanitizeColorCode } from '../utils/validation';
+import { DEFAULT_VALUES, VALIDATION_MESSAGES } from '../constants/validation';
 
 interface TagFormProps {
   onSubmit: (data: CreateTagData | UpdateTagData) => Promise<void>;
@@ -20,30 +22,45 @@ export function TagForm({
   taggableId,
   taggableType
 }: TagFormProps) {
-  const [name, setName] = useState(initialData?.name || '');
-  const [description, setDescription] = useState(initialData?.description || '');
-  const [colorCode, setColorCode] = useState(initialData?.color_code || '#000000');
+  const [name, setName] = useState(initialData?.name || DEFAULT_VALUES.EMPTY_STRING);
+  const [description, setDescription] = useState(initialData?.description || DEFAULT_VALUES.EMPTY_STRING);
+  const [colorCode, setColorCode] = useState(initialData?.color_code || DEFAULT_VALUES.TAG_COLOR);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setName(initialData?.name || '');
-    setDescription(initialData?.description || '');
-    setColorCode(initialData?.color_code || '#000000');
+    setName(initialData?.name || DEFAULT_VALUES.EMPTY_STRING);
+    setDescription(initialData?.description || DEFAULT_VALUES.EMPTY_STRING);
+    setColorCode(initialData?.color_code || DEFAULT_VALUES.TAG_COLOR);
     setError(null);
   }, [initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim()) {
-      setError('タグ名を入力してください');
+    // Validate name
+    const nameError = validateTagName(name);
+    if (nameError) {
+      setError(nameError);
       return;
     }
 
-    // Validate color code format
-    const colorPattern = /^#[0-9A-Fa-f]{6}$/;
-    if (colorCode && !colorPattern.test(colorCode)) {
-      setError('カラーコードは有効な16進数で入力してください（例: #FF0000）');
+    // Validate description
+    const descriptionError = validateTagDescription(description);
+    if (descriptionError) {
+      setError(descriptionError);
+      return;
+    }
+
+    // Validate and sanitize color code
+    const colorError = validateColorCode(colorCode);
+    if (colorError) {
+      setError(colorError);
+      return;
+    }
+
+    const sanitizedColorCode = sanitizeColorCode(colorCode);
+    if (colorCode && !sanitizedColorCode) {
+      setError(VALIDATION_MESSAGES.COLOR_CODE_INVALID);
       return;
     }
 
@@ -51,14 +68,14 @@ export function TagForm({
       setError(null);
       const submitData = isEdit 
         ? { 
-            name: name.trim(), 
-            description: description.trim() || undefined,
-            color_code: colorCode || undefined
+            name: sanitizeText(name.trim()), 
+            description: description.trim() ? sanitizeText(description.trim()) : undefined,
+            color_code: sanitizedColorCode || undefined
           }
         : { 
-            name: name.trim(), 
-            description: description.trim() || undefined,
-            color_code: colorCode || undefined,
+            name: sanitizeText(name.trim()), 
+            description: description.trim() ? sanitizeText(description.trim()) : undefined,
+            color_code: sanitizedColorCode || undefined,
             taggable_id: taggableId,
             taggable_type: taggableType
           };
@@ -67,9 +84,9 @@ export function TagForm({
       
       if (!isEdit) {
         // Reset form for create mode
-        setName('');
-        setDescription('');
-        setColorCode('#000000');
+        setName(DEFAULT_VALUES.EMPTY_STRING);
+        setDescription(DEFAULT_VALUES.EMPTY_STRING);
+        setColorCode(DEFAULT_VALUES.TAG_COLOR);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました');
@@ -126,6 +143,7 @@ export function TagForm({
               onChange={(e) => setColorCode(e.target.value)}
               className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
               disabled={isLoading}
+              aria-label="タグのカラーを選択"
             />
             <input
               type="text"

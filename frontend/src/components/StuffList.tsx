@@ -41,6 +41,32 @@ export function StuffList({ stuffs, onEdit, onDelete, isLoading = false }: Stuff
               <span className="text-sm text-secondary">#{stuff.id}</span>
             </div>
             
+            {stuff.tags && stuff.tags.length > 0 && (
+              <div className="mb-3">
+                <div className="flex flex-wrap gap-1">
+                  {stuff.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full border"
+                      style={{
+                        backgroundColor: tag.color_code ? `${tag.color_code}20` : '#f3f4f6',
+                        borderColor: tag.color_code || '#d1d5db',
+                        color: tag.color_code || '#374151'
+                      }}
+                    >
+                      {tag.color_code && (
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: tag.color_code }}
+                        />
+                      )}
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             {stuff.created_at && (
               <p className="text-sm text-secondary mb-4">
                 作成日: {new Date(stuff.created_at).toLocaleDateString('ja-JP')}

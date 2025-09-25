@@ -179,7 +179,8 @@ RSpec.describe Api::V1::StuffsController, type: :controller do
   end
 
   describe 'DELETE #destroy' do
-    let!(:stuff) { create(:stuff, name: 'To Be Deleted', tags_attributes: [ { name: 'Tag 1' } ]) }
+    let!(:stuff) { create(:stuff, name: 'To Be Deleted') }
+    let!(:tag) { create(:tag, taggable: stuff, name: 'Tag 1') }
 
     context 'when stuff exists' do
       it 'destroys the requested stuff' do

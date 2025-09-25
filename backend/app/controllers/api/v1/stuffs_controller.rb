@@ -45,6 +45,6 @@ class Api::V1::StuffsController < ApplicationController
   end
 
   def stuff_params
-    params.require(:stuff).permit(:name, tags_attributes: [ :name, :description, :color_code ])
+    params.require(:stuff).permit(:name, tags_attributes: [ :id, :name, :description, :color_code, :_destroy ])
   end
 end

@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::StuffsController, type: :controller do
-  let(:valid_attributes) { { name: 'Test Stuff' } }
+  let(:valid_attributes) { { name: 'Test Stuff', tags_attributes: [ { name: 'Tag 1' } ] } }
   let(:invalid_attributes) { { name: nil } }
 
   describe 'GET #index' do
@@ -16,18 +16,26 @@ RSpec.describe Api::V1::StuffsController, type: :controller do
     context 'when stuffs exist' do
       let!(:stuff1) { create(:stuff, name: 'First Stuff') }
       let!(:stuff2) { create(:stuff, name: 'Second Stuff') }
+      let!(:tag1) { create(:tag, name: 'Tag 1', taggable: stuff1) }
 
       it 'returns all stuffs' do
         get :index
         expect(response).to have_http_status(:ok)
 
         parsed_response = JSON.parse(response.body)
-        expect(parsed_response.length).to eq(2)
 
         # Use match_array and a_hash_including for order-independent assertions
         expect(parsed_response).to match_array([
-          a_hash_including('name' => 'First Stuff'),
-          a_hash_including('name' => 'Second Stuff')
+          a_hash_including(
+            'name' => 'First Stuff',
+            'tags' => [
+              a_hash_including('name' => 'Tag 1')
+            ]
+          ),
+          a_hash_including(
+            'name' => 'Second Stuff',
+            'tags' => []
+          )
         ])
       end
     end
@@ -36,6 +44,7 @@ RSpec.describe Api::V1::StuffsController, type: :controller do
   describe 'GET #show' do
     context 'when stuff exists' do
       let!(:stuff) { create(:stuff, name: 'Test Stuff') }
+      let!(:tag) { create(:tag, taggable: stuff) }
 
       it 'returns the stuff' do
         get :show, params: { id: stuff.id }
@@ -44,7 +53,14 @@ RSpec.describe Api::V1::StuffsController, type: :controller do
         parsed_response = JSON.parse(response.body)
         expect(parsed_response).to include(
           'id' => stuff.id,
-          'name' => 'Test Stuff'
+          'name' => 'Test Stuff',
+          'tags' => [
+            a_hash_including(
+              'name' => tag.name,
+              'description' => tag.description,
+              'color_code' => tag.color_code
+            )
+          ]
         )
       end
     end
@@ -72,7 +88,10 @@ RSpec.describe Api::V1::StuffsController, type: :controller do
 
         parsed_response = JSON.parse(response.body)
         expect(parsed_response).to include(
-          'name' => 'Test Stuff'
+          'name' => 'Test Stuff',
+          'tags' => [
+            a_hash_including('name' => 'Tag 1')
+          ]
         )
         expect(parsed_response).to have_key('id')
       end
@@ -101,12 +120,22 @@ RSpec.describe Api::V1::StuffsController, type: :controller do
     let!(:stuff) { create(:stuff, name: 'Original Name') }
 
     context 'with valid parameters' do
-      let(:new_attributes) { { name: 'Updated Name' } }
+      let(:new_attributes) { { name: 'Updated Name', tags_attributes: [ { name: 'New Tag' } ] } }
+      let(:no_tag_attributes) { { name: 'Updated Name', tags_attributes: [] } }
 
       it 'updates the requested stuff' do
         put :update, params: { id: stuff.id, stuff: new_attributes }
         stuff.reload
         expect(stuff.name).to eq('Updated Name')
+        expect(stuff.tags.count).to eq(1)
+        expect(stuff.tags[0].name).to eq('New Tag')
+      end
+
+      it 'updates to remove tags' do
+        put :update, params: { id: stuff.id, stuff: no_tag_attributes }
+        stuff.reload
+        expect(stuff.name).to eq('Updated Name')
+        expect(stuff.tags.count).to eq(0)
       end
 
       it 'returns ok status' do
@@ -150,7 +179,7 @@ RSpec.describe Api::V1::StuffsController, type: :controller do
   end
 
   describe 'DELETE #destroy' do
-    let!(:stuff) { create(:stuff, name: 'To Be Deleted') }
+    let!(:stuff) { create(:stuff, name: 'To Be Deleted', tags_attributes: [ { name: 'Tag 1' } ]) }
 
     context 'when stuff exists' do
       it 'destroys the requested stuff' do

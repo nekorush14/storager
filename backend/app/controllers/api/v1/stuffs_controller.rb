@@ -3,13 +3,13 @@ class Api::V1::StuffsController < ApplicationController
 
   # GET /api/v1/stuffs
   def index
-    @stuffs = Stuff.all
-    render json: @stuffs
+    @stuffs = Stuff.includes(:tags).all
+    render json: @stuffs, include: :tags
   end
 
   # GET /api/v1/stuffs/:id
   def show
-    render json: @stuff
+    render json: @stuff, include: :tags
   end
 
   # POST /api/v1/stuffs
@@ -17,7 +17,7 @@ class Api::V1::StuffsController < ApplicationController
     @stuff = Stuff.new(stuff_params)
 
     if @stuff.save
-      render json: @stuff, status: :created
+      render json: @stuff, include: :tags, status: :created
     else
       render json: @stuff.errors, status: :unprocessable_entity
     end
@@ -26,7 +26,7 @@ class Api::V1::StuffsController < ApplicationController
   # PUT /api/v1/stuffs/:id
   def update
     if @stuff.update(stuff_params)
-      render json: @stuff
+      render json: @stuff, include: :tags
     else
       render json: @stuff.errors, status: :unprocessable_entity
     end
@@ -45,6 +45,6 @@ class Api::V1::StuffsController < ApplicationController
   end
 
   def stuff_params
-    params.require(:stuff).permit(:name)
+    params.require(:stuff).permit(:name, tags_attributes: [ :id, :name, :description, :color_code, :_destroy ])
   end
 end

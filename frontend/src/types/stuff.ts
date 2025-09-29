@@ -10,10 +10,10 @@ export interface Stuff {
 
 export interface CreateStuffData {
   name: string;
-  tags?: { name: string; description?: string; color_code?: string }[];
+  tags_attributes?: { name: string; description?: string; color_code?: string }[];
 }
 
 export interface UpdateStuffData {
   name: string;
-  tags?: { name: string; description?: string; color_code?: string }[];
+  tags_attributes?: { id?: number; name?: string; description?: string; color_code?: string; _destroy?: boolean }[];
 }

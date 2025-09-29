@@ -54,7 +54,7 @@ describe('StuffForm', () => {
     await user.click(submitButton);
     
     await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith({ name: '新しいアイテム', tags: [] });
+      expect(mockOnSubmit).toHaveBeenCalledWith({ name: '新しいアイテム', tags_attributes: [] });
     });
   });
 
@@ -203,7 +203,7 @@ describe('StuffForm', () => {
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
           name: 'テストアイテム',
-          tags: [{
+          tags_attributes: [{
             name: 'テストタグ',
             description: 'テスト説明',
             color_code: '#ff0000'
@@ -229,7 +229,7 @@ describe('StuffForm', () => {
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
           name: 'テストアイテム',
-          tags: []
+          tags_attributes: []
         });
       });
     });

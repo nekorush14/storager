@@ -50,7 +50,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
       setError(null);
       const submitData = {
         name: name.trim(),
-        tags: tags.filter(tag => tag.name.trim()).map(tag => ({
+        tags_attributes: tags.filter(tag => tag.name.trim()).map(tag => ({
           name: tag.name.trim(),
           description: tag.description.trim() || undefined,
           color_code: tag.color_code || undefined

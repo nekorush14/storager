@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { CreateStuffData, UpdateStuffData, Stuff } from '../types/stuff';
 
-interface TagInput {
-  id?: number;
+type TagInput = {
   name: string;
   description: string;
   color_code: string;
-  _destroy?: boolean;
-}
+} & (
+  | { id: number; _destroy?: boolean }  // Existing tag
+  | { id?: never; _destroy?: never }    // New tag
+);
 
 interface StuffFormProps {
   onSubmit: (data: CreateStuffData | UpdateStuffData) => Promise<void>;
@@ -60,7 +61,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
           description: tag.description.trim() || undefined,
           color_code: tag.color_code || undefined,
           ...(tag._destroy && { _destroy: true })
-        })).filter(tag => tag.name || tag._destroy)
+        })).filter(tag => tag._destroy || (tag.name && tag.name.trim()))
       };
       await onSubmit(submitData);
       if (!isEdit) {
@@ -142,13 +143,18 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
             if (tag._destroy) return null;
             const visibleIndex = tags.slice(0, actualIndex).filter(t => !t._destroy).length;
             return (
-            <div key={tag.id || `new-${actualIndex}`} className="border border-gray-300 rounded p-3 mb-2">
+            <div
+              key={tag.id || `new-${actualIndex}`}
+              className="border border-gray-300 rounded p-3 mb-2 transition-opacity"
+              role="group"
+              aria-label={`タグ ${visibleIndex + 1}: ${tag.name || '未設定'}`}
+            >
               <div className="flex justify-between items-start mb-2">
                 <span className="text-sm font-medium">タグ {visibleIndex + 1}</span>
                 <button
                   type="button"
                   onClick={() => removeTag(actualIndex)}
-                  className="text-red-500 hover:text-red-700 text-sm"
+                  className="text-red-500 hover:text-red-700 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded px-2 py-1"
                   disabled={isLoading}
                   aria-label={`タグ ${visibleIndex + 1} を削除`}
                 >
@@ -203,9 +209,16 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
                       value={tag.color_code}
                       onChange={(e) => {
                         const value = e.target.value;
-                        // Validate hex color format
+                        // Allow input during typing
                         if (value === '' || /^#[0-9A-Fa-f]{0,6}$/.test(value)) {
                           updateTag(actualIndex, 'color_code', value);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const value = e.target.value;
+                        // Validate complete hex color on blur
+                        if (value && !/^#[0-9A-Fa-f]{6}$/.test(value)) {
+                          updateTag(actualIndex, 'color_code', '#000000');
                         }
                       }}
                       placeholder="#000000"

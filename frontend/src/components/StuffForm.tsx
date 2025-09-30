@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { CreateStuffData, UpdateStuffData, Stuff } from '../types/stuff';
 
 interface TagInput {
@@ -88,11 +88,16 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
   };
 
   const updateTag = (index: number, field: keyof TagInput, value: string) => {
-    const updatedTags = tags.map((tag, i) => 
+    const updatedTags = tags.map((tag, i) =>
       i === index ? { ...tag, [field]: value } : tag
     );
     setTags(updatedTags);
   };
+
+  // Memoize visible tags for performance
+  const visibleTags = useMemo(() =>
+    tags.filter(tag => !tag._destroy), [tags]
+  );
 
   return (
     <div className="card">
@@ -133,23 +138,24 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
             </button>
           </div>
           
-          {tags.filter(tag => !tag._destroy).map((tag, index) => {
-            const actualIndex = tags.indexOf(tag);
+          {tags.map((tag, actualIndex) => {
+            if (tag._destroy) return null;
+            const visibleIndex = tags.slice(0, actualIndex).filter(t => !t._destroy).length;
             return (
-            <div key={tag.id || `new-${index}`} className="border border-gray-300 rounded p-3 mb-2">
+            <div key={tag.id || `new-${actualIndex}`} className="border border-gray-300 rounded p-3 mb-2">
               <div className="flex justify-between items-start mb-2">
-                <span className="text-sm font-medium">タグ {index + 1}</span>
+                <span className="text-sm font-medium">タグ {visibleIndex + 1}</span>
                 <button
                   type="button"
                   onClick={() => removeTag(actualIndex)}
                   className="text-red-500 hover:text-red-700 text-sm"
                   disabled={isLoading}
-                  aria-label={`タグ ${index + 1} を削除`}
+                  aria-label={`タグ ${visibleIndex + 1} を削除`}
                 >
                   削除
                 </button>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -164,7 +170,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
                     disabled={isLoading}
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     説明
@@ -178,7 +184,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
                     disabled={isLoading}
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     色
@@ -190,12 +196,18 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
                       onChange={(e) => updateTag(actualIndex, 'color_code', e.target.value)}
                       className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
                       disabled={isLoading}
-                      aria-label={`タグ ${index + 1} のカラーを選択`}
+                      aria-label={`タグ ${visibleIndex + 1} のカラーを選択`}
                     />
                     <input
                       type="text"
                       value={tag.color_code}
-                      onChange={(e) => updateTag(actualIndex, 'color_code', e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Validate hex color format
+                        if (value === '' || /^#[0-9A-Fa-f]{0,6}$/.test(value)) {
+                          updateTag(actualIndex, 'color_code', value);
+                        }
+                      }}
                       placeholder="#000000"
                       className="input text-sm flex-1"
                       disabled={isLoading}
@@ -208,7 +220,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
           );
           })}
           
-          {tags.filter(tag => !tag._destroy).length === 0 && (
+          {visibleTags.length === 0 && (
             <p className="text-sm text-gray-500">タグはまだ追加されていません。上のボタンから追加できます。</p>
           )}
         </div>

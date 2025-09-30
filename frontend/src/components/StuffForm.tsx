@@ -81,7 +81,9 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
     const tag = tags[index];
     // If tag has an ID (existing tag), mark for deletion instead of removing
     if (tag.id) {
-      setTags(tags.map((t, i) => i === index ? { ...t, _destroy: true } : t));
+      setTags(tags.map((t, i) =>
+        i === index ? { ...t, id: t.id, _destroy: true } as TagInput : t
+      ));
     } else {
       // If tag doesn't have an ID (new tag), remove it from state
       setTags(tags.filter((_, i) => i !== index));

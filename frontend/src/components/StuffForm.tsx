@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import type { CreateStuffData, UpdateStuffData, Stuff } from '../types/stuff';
 
 interface TagInput {
+  id?: number;
   name: string;
   description: string;
   color_code: string;
+  _destroy?: boolean;
 }
 
 interface StuffFormProps {
@@ -19,6 +21,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
   const [name, setName] = useState(initialData?.name || '');
   const [tags, setTags] = useState<TagInput[]>(
     initialData?.tags?.map(tag => ({
+      id: tag.id,
       name: tag.name,
       description: tag.description || '',
       color_code: tag.color_code || '#000000'
@@ -30,6 +33,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
     setName(initialData?.name || '');
     setTags(
       initialData?.tags?.map(tag => ({
+        id: tag.id,
         name: tag.name,
         description: tag.description || '',
         color_code: tag.color_code || '#000000'
@@ -50,11 +54,13 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
       setError(null);
       const submitData = {
         name: name.trim(),
-        tags_attributes: tags.filter(tag => tag.name.trim()).map(tag => ({
+        tags_attributes: tags.map(tag => ({
+          ...(tag.id && { id: tag.id }),
           name: tag.name.trim(),
           description: tag.description.trim() || undefined,
-          color_code: tag.color_code || undefined
-        }))
+          color_code: tag.color_code || undefined,
+          ...(tag._destroy && { _destroy: true })
+        })).filter(tag => tag.name || tag._destroy)
       };
       await onSubmit(submitData);
       if (!isEdit) {
@@ -71,7 +77,14 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
   };
 
   const removeTag = (index: number) => {
-    setTags(tags.filter((_, i) => i !== index));
+    const tag = tags[index];
+    // If tag has an ID (existing tag), mark for deletion instead of removing
+    if (tag.id) {
+      setTags(tags.map((t, i) => i === index ? { ...t, _destroy: true } : t));
+    } else {
+      // If tag doesn't have an ID (new tag), remove it from state
+      setTags(tags.filter((_, i) => i !== index));
+    }
   };
 
   const updateTag = (index: number, field: keyof TagInput, value: string) => {
@@ -120,13 +133,15 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
             </button>
           </div>
           
-          {tags.map((tag, index) => (
-            <div key={index} className="border border-gray-300 rounded p-3 mb-2">
+          {tags.filter(tag => !tag._destroy).map((tag, index) => {
+            const actualIndex = tags.indexOf(tag);
+            return (
+            <div key={tag.id || `new-${index}`} className="border border-gray-300 rounded p-3 mb-2">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-sm font-medium">タグ {index + 1}</span>
                 <button
                   type="button"
-                  onClick={() => removeTag(index)}
+                  onClick={() => removeTag(actualIndex)}
                   className="text-red-500 hover:text-red-700 text-sm"
                   disabled={isLoading}
                   aria-label={`タグ ${index + 1} を削除`}
@@ -143,7 +158,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
                   <input
                     type="text"
                     value={tag.name}
-                    onChange={(e) => updateTag(index, 'name', e.target.value)}
+                    onChange={(e) => updateTag(actualIndex, 'name', e.target.value)}
                     placeholder="タグ名"
                     className="input text-sm"
                     disabled={isLoading}
@@ -157,7 +172,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
                   <input
                     type="text"
                     value={tag.description}
-                    onChange={(e) => updateTag(index, 'description', e.target.value)}
+                    onChange={(e) => updateTag(actualIndex, 'description', e.target.value)}
                     placeholder="説明（任意）"
                     className="input text-sm"
                     disabled={isLoading}
@@ -172,7 +187,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
                     <input
                       type="color"
                       value={tag.color_code}
-                      onChange={(e) => updateTag(index, 'color_code', e.target.value)}
+                      onChange={(e) => updateTag(actualIndex, 'color_code', e.target.value)}
                       className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
                       disabled={isLoading}
                       aria-label={`タグ ${index + 1} のカラーを選択`}
@@ -180,7 +195,7 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
                     <input
                       type="text"
                       value={tag.color_code}
-                      onChange={(e) => updateTag(index, 'color_code', e.target.value)}
+                      onChange={(e) => updateTag(actualIndex, 'color_code', e.target.value)}
                       placeholder="#000000"
                       className="input text-sm flex-1"
                       disabled={isLoading}
@@ -190,9 +205,10 @@ export function StuffForm({ onSubmit, initialData, isEdit = false, isLoading = f
                 </div>
               </div>
             </div>
-          ))}
+          );
+          })}
           
-          {tags.length === 0 && (
+          {tags.filter(tag => !tag._destroy).length === 0 && (
             <p className="text-sm text-gray-500">タグはまだ追加されていません。上のボタンから追加できます。</p>
           )}
         </div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_21_002431) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_11_004544) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -19,6 +19,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_21_002431) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "quantity", precision: 10, scale: 2
+    t.string "unit"
+    t.datetime "expiration_date", precision: nil
+    t.boolean "archived", default: false
+    t.index ["archived"], name: "index_stuffs_on_archived"
+    t.index ["expiration_date"], name: "index_stuffs_on_expiration_date"
   end
 
   create_table "tags", force: :cascade do |t|

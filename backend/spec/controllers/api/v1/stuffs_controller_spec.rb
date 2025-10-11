@@ -1,7 +1,16 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::StuffsController, type: :controller do
-  let(:valid_attributes) { { name: 'Test Stuff', tags_attributes: [ { name: 'Tag 1' } ] } }
+  let(:valid_attributes) do
+    {
+      name: 'Test Stuff',
+      quantity: 10.5,
+      unit: 'kg',
+      expiration_date: '2025-12-31',
+      archived: false,
+      tags_attributes: [ { name: 'Tag 1' } ]
+    }
+  end
   let(:invalid_attributes) { { name: nil } }
 
   describe 'GET #index' do
@@ -89,11 +98,15 @@ RSpec.describe Api::V1::StuffsController, type: :controller do
         parsed_response = JSON.parse(response.body)
         expect(parsed_response).to include(
           'name' => 'Test Stuff',
+          'quantity' => '10.5',
+          'unit' => 'kg',
+          'archived' => false,
           'tags' => [
             a_hash_including('name' => 'Tag 1')
           ]
         )
         expect(parsed_response).to have_key('id')
+        expect(parsed_response).to have_key('expiration_date')
       end
     end
 
@@ -120,13 +133,26 @@ RSpec.describe Api::V1::StuffsController, type: :controller do
     let!(:stuff) { create(:stuff, name: 'Original Name') }
 
     context 'with valid parameters' do
-      let(:new_attributes) { { name: 'Updated Name', tags_attributes: [ { name: 'New Tag' } ] } }
+      let(:new_attributes) do
+        {
+          name: 'Updated Name',
+          quantity: 20.0,
+          unit: 'g',
+          expiration_date: '2026-01-15',
+          archived: true,
+          tags_attributes: [ { name: 'New Tag' } ]
+        }
+      end
       let(:no_tag_attributes) { { name: 'Updated Name', tags_attributes: [] } }
 
       it 'updates the requested stuff' do
         put :update, params: { id: stuff.id, stuff: new_attributes }
         stuff.reload
         expect(stuff.name).to eq('Updated Name')
+        expect(stuff.quantity).to eq(20.0)
+        expect(stuff.unit).to eq('g')
+        expect(stuff.expiration_date).to be_present
+        expect(stuff.archived).to eq(true)
         expect(stuff.tags.count).to eq(1)
         expect(stuff.tags[0].name).to eq('New Tag')
       end
@@ -145,8 +171,12 @@ RSpec.describe Api::V1::StuffsController, type: :controller do
         parsed_response = JSON.parse(response.body)
         expect(parsed_response).to include(
           'id' => stuff.id,
-          'name' => 'Updated Name'
+          'name' => 'Updated Name',
+          'quantity' => '20.0',
+          'unit' => 'g',
+          'archived' => true
         )
+        expect(parsed_response).to have_key('expiration_date')
       end
     end
 

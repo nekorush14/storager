@@ -34,6 +34,17 @@ RSpec.describe Stuff, type: :model do
         stuff = Stuff.new(name: "test", quantity: nil)
         expect(stuff).to be_valid
       end
+
+      it "rejects extremely large quantity" do
+        stuff = Stuff.new(name: "test", quantity: 1_000_000, unit: "kg")
+        expect(stuff).to be_invalid
+        expect(stuff.errors[:quantity]).to include("must be less than 1000000")
+      end
+
+      it "accepts quantity just below the limit" do
+        stuff = Stuff.new(name: "test", quantity: 999_999.99, unit: "kg")
+        expect(stuff).to be_valid
+      end
     end
 
     describe "unit validation" do
@@ -48,9 +59,22 @@ RSpec.describe Stuff, type: :model do
         expect(stuff).to be_valid
       end
 
-      it "accepts unit when quantity is present" do
+      it "accepts valid unit when quantity is present" do
         stuff = Stuff.new(name: "test", quantity: 10.5, unit: "kg")
         expect(stuff).to be_valid
+      end
+
+      it "rejects invalid unit" do
+        stuff = Stuff.new(name: "test", quantity: 10.5, unit: "invalid_unit")
+        expect(stuff).to be_invalid
+        expect(stuff.errors[:unit]).to include("は有効な単位ではありません")
+      end
+
+      it "accepts all allowed units" do
+        Stuff::ALLOWED_UNITS.each do |unit|
+          stuff = Stuff.new(name: "test", quantity: 10.5, unit: unit)
+          expect(stuff).to be_valid, "#{unit} should be valid"
+        end
       end
     end
 
@@ -99,6 +123,52 @@ RSpec.describe Stuff, type: :model do
       expect(tag.taggable).to eq(stuff)
       expect(tag.taggable_type).to eq("Stuff")
       expect(tag.taggable_id).to eq(stuff.id)
+    end
+  end
+
+  describe "scopes" do
+    describe ".active" do
+      it "returns only non-archived items" do
+        active_stuff = Stuff.create!(name: "Active Item", archived: false)
+        archived_stuff = Stuff.create!(name: "Archived Item", archived: true)
+
+        expect(Stuff.active).to include(active_stuff)
+        expect(Stuff.active).not_to include(archived_stuff)
+      end
+    end
+
+    describe ".archived" do
+      it "returns only archived items" do
+        active_stuff = Stuff.create!(name: "Active Item", archived: false)
+        archived_stuff = Stuff.create!(name: "Archived Item", archived: true)
+
+        expect(Stuff.archived).to include(archived_stuff)
+        expect(Stuff.archived).not_to include(active_stuff)
+      end
+    end
+
+    describe ".expiring_soon" do
+      it "returns items expiring within a week" do
+        expiring_stuff = Stuff.create!(name: "Expiring Soon", expiration_date: 3.days.from_now)
+        not_expiring_stuff = Stuff.create!(name: "Not Expiring", expiration_date: 2.weeks.from_now)
+        no_expiration_stuff = Stuff.create!(name: "No Expiration")
+
+        expect(Stuff.expiring_soon).to include(expiring_stuff)
+        expect(Stuff.expiring_soon).not_to include(not_expiring_stuff)
+        expect(Stuff.expiring_soon).not_to include(no_expiration_stuff)
+      end
+    end
+
+    describe ".expired" do
+      it "returns items with past expiration dates" do
+        expired_stuff = Stuff.create!(name: "Expired Item", expiration_date: 1.day.ago)
+        valid_stuff = Stuff.create!(name: "Valid Item", expiration_date: 1.day.from_now)
+        no_expiration_stuff = Stuff.create!(name: "No Expiration")
+
+        expect(Stuff.expired).to include(expired_stuff)
+        expect(Stuff.expired).not_to include(valid_stuff)
+        expect(Stuff.expired).not_to include(no_expiration_stuff)
+      end
     end
   end
 end
